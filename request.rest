@@ -1,0 +1,50 @@
+### Variables
+@baseUrl = http://localhost:8080/api/v1
+@authToken = {{login.response.body.data.token}}
+
+### 1. Register User Baru
+POST {{baseUrl}}/auth/register
+Content-Type: application/json
+
+{
+  "name": "Budi Santoso",
+  "email": "budi@gmail.com",
+  "password": "password123"
+}
+
+### 2. Login User (Token Otomatis Disimpan ke Variable)
+# @name login
+POST {{baseUrl}}/auth/login
+Content-Type: application/json
+
+{
+  "email": "budi@gmail.com",
+  "password": "password123"
+}
+
+### 3. Get Profile User (Protected - Wajib Login)
+GET {{baseUrl}}/users/me
+Authorization: Bearer {{authToken}}
+
+### 4. Update Profile User (Protected - Wajib Login)
+PUT {{baseUrl}}/users/me
+Authorization: Bearer {{authToken}}
+Content-Type: application/json
+
+{
+  "name": "Budi Santoso Updated",
+  "email": "budi.new@gmail.com"
+}
+
+### 5. Test Uji Validasi Register (Error 400 - Email & Password Salah)
+POST {{baseUrl}}/auth/register
+Content-Type: application/json
+
+{
+  "name": "A",
+  "email": "email-salah",
+  "password": "123"
+}
+
+### 6. Test Uji Akses Tanpa Token (Error 401 Unauthorized)
+GET {{baseUrl}}/users/me
