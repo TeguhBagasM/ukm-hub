@@ -2,6 +2,8 @@ package service
 
 import (
 	"errors"
+	"time"
+
 	"ukm-hub/internal/dto"
 	"ukm-hub/internal/entity"
 	"ukm-hub/internal/repository"
@@ -13,16 +15,18 @@ import (
 type UserService interface {
 	Register(req dto.RegisterRequest) (*dto.UserResponse, error)
 	Login(req dto.LoginRequest) (*dto.LoginResponse, error)
+	Logout(token string) error
 	GetProfile(userID string) (*dto.UserResponse, error)
 	UpdateProfile(userID string, req dto.UpdateUserRequest) (*dto.UserResponse, error)
 }
 
 type userService struct {
-	repo repository.UserRepository
+	repo      repository.UserRepository
+	tokenRepo repository.TokenRepository
 }
 
-func NewUserService(repo repository.UserRepository) UserService {
-	return &userService{repo: repo}
+func NewUserService(repo repository.UserRepository, tokenRepo repository.TokenRepository) UserService {
+	return &userService{repo: repo, tokenRepo: tokenRepo}
 }
 
 func (s *userService) Register(req dto.RegisterRequest) (*dto.UserResponse, error) {
@@ -75,6 +79,23 @@ func (s *userService) Login(req dto.LoginRequest) (*dto.LoginResponse, error) {
 		Token: token,
 		User:  *s.toResponse(user),
 	}, nil
+}
+
+func (s *userService) Logout(token string) error {
+	claims, err := utils.ValidateToken(token)
+	if err != nil {
+		return errors.New("invalid token")
+	}
+
+	expiresAt := time.Now()
+	if claims.ExpiresAt != nil {
+		expiresAt = claims.ExpiresAt.Time
+	}
+
+	return s.tokenRepo.Revoke(&entity.RevokedToken{
+		JTI:       claims.ID,
+		ExpiresAt: expiresAt,
+	})
 }
 
 func (s *userService) GetProfile(userID string) (*dto.UserResponse, error) {

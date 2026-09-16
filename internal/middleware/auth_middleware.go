@@ -4,12 +4,13 @@ import (
 	"net/http"
 	"strings"
 
+	"ukm-hub/internal/repository"
 	"ukm-hub/internal/utils"
 
 	"github.com/gin-gonic/gin"
 )
 
-func AuthMiddleware() gin.HandlerFunc {
+func AuthMiddleware(tokenRepo repository.TokenRepository) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		authHeader := c.GetHeader("Authorization")
 		if authHeader == "" {
@@ -33,9 +34,22 @@ func AuthMiddleware() gin.HandlerFunc {
 			return
 		}
 
-		// Simpan ID & Role di context agar bisa dipakai oleh handler
+		revoked, err := tokenRepo.IsRevoked(claims.ID)
+		if err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "failed to check token"})
+			c.Abort()
+			return
+		}
+		if revoked {
+			c.JSON(http.StatusUnauthorized, gin.H{"error": "token has been revoked"})
+			c.Abort()
+			return
+		}
+
+		// Simpan ID, Role & Token di context agar bisa dipakai oleh handler
 		c.Set("user_id", claims.UserID)
 		c.Set("user_role", claims.Role)
+		c.Set("token", parts[1])
 		c.Next()
 	}
 }

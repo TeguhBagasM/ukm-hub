@@ -49,6 +49,17 @@ func (h *UserHandler) Login(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{"message": "Login successful", "data": res})
 }
 
+func (h *UserHandler) Logout(c *gin.Context) {
+	token, _ := c.Get("token")
+
+	if err := h.userService.Logout(token.(string)); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{"message": "Logout successful"})
+}
+
 func (h *UserHandler) GetProfile(c *gin.Context) {
 	// Ambil user_id yang ditaruh oleh AuthMiddleware
 	userID, _ := c.Get("user_id")

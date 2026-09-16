@@ -25,12 +25,15 @@ func main() {
 		log.Fatalf("Failed to connect DB: %v", err)
 	}
 
-	// Auto Migrate Model User
-	db.AutoMigrate(&entity.User{})
+	// Auto Migrate Models
+	db.AutoMigrate(&entity.User{}, &entity.RevokedToken{})
 
 	// Dependency Injection Wiring
 	userRepo := repository.NewUserRepository(db)
-	userService := service.NewUserService(userRepo)
+	tokenRepo := repository.NewTokenRepository(db)
+	tokenRepo.DeleteExpired()
+
+	userService := service.NewUserService(userRepo, tokenRepo)
 	userHandler := handler.NewUserHandler(userService)
 
 	if config.Get("ENV", "development") == "production" {
@@ -40,7 +43,7 @@ func main() {
 	r := gin.Default()
 
 	// Setup Routes
-	routes.SetupRouter(r, userHandler)
+	routes.SetupRouter(r, userHandler, tokenRepo)
 
 	r.Run(":" + config.Get("PORT", "8080"))
 }

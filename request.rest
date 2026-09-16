@@ -1,15 +1,15 @@
 ### Variables
 @baseUrl = http://localhost:8080/api/v1
-@authToken = {{login.response.body.data.token}}
+@authToken = eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyX2lkIjoiNmU4YmQ1YmItMjg2Yi00MTM2LWE4ZTAtYzg4YzBiNjJiZGU0Iiwicm9sZSI6InVzZXIiLCJleHAiOjE3ODk2NzU2NzcsImlhdCI6MTc4OTU4OTI3N30.UWFCS8vw2VhL4TesYM1eWN-DDUP_GT2e5UjdNn3cQ60
 
 ### 1. Register User Baru
 POST {{baseUrl}}/auth/register
 Content-Type: application/json
 
 {
-  "name": "Budi Santoso",
-  "email": "budi@gmail.com",
-  "password": "password123"
+  "name": "teguh bagas",
+  "email": "teguh@gmail.com",
+  "password": "121212"
 }
 
 ### 2. Login User (Token Otomatis Disimpan ke Variable)
@@ -18,8 +18,8 @@ POST {{baseUrl}}/auth/login
 Content-Type: application/json
 
 {
-  "email": "budi@gmail.com",
-  "password": "password123"
+  "email": "teguh@gmail.com",
+  "password": "121212"
 }
 
 ### 3. Get Profile User (Protected - Wajib Login)
@@ -32,8 +32,8 @@ Authorization: Bearer {{authToken}}
 Content-Type: application/json
 
 {
-  "name": "Budi Santoso Updated",
-  "email": "budi.new@gmail.com"
+  "name": "teguh bagas Updated",
+  "email": "teguh@gmail.com"
 }
 
 ### 5. Test Uji Validasi Register (Error 400 - Email & Password Salah)
@@ -48,3 +48,7 @@ Content-Type: application/json
 
 ### 6. Test Uji Akses Tanpa Token (Error 401 Unauthorized)
 GET {{baseUrl}}/users/me
+
+### 7. Logout User (Protected - Wajib Login)
+POST {{baseUrl}}/auth/logout
+Authorization: Bearer {{authToken}}
