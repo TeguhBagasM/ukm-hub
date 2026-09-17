@@ -8,6 +8,7 @@ import (
 	"handler/internal/config"
 	"handler/internal/entity"
 	"handler/internal/handler"
+	"handler/internal/middleware"
 	"handler/internal/repository"
 	"handler/internal/routes"
 	"handler/internal/seed"
@@ -94,6 +95,7 @@ func main() {
 	}
 
 	r := gin.Default()
+	r.Use(middleware.CORS())
 
 	r.GET("/health", func(c *gin.Context) {
 		c.JSON(200, gin.H{"status": "ok"})

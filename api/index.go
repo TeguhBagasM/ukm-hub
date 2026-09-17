@@ -6,6 +6,7 @@ import (
 
 	"handler/internal/config"
 	"handler/internal/handler"
+	"handler/internal/middleware"
 	"handler/internal/repository"
 	"handler/internal/routes"
 	"handler/internal/service"
@@ -61,6 +62,7 @@ func init() {
 
 	gin.SetMode(gin.ReleaseMode)
 	app = gin.New()
+	app.Use(middleware.CORS())
 	app.Use(gin.Recovery())
 
 	// 4. Passing 11 parameter ke SetupRouter
