@@ -1,0 +1,15 @@
+.git
+.gitignore
+.env
+.env.*
+bin/
+dist/
+build/
+docs/
+*.pem
+*.key
+.DS_Store
+.idea/
+.vscode/
+prd.md
+request.rest

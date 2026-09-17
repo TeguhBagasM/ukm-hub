@@ -1,0 +1,28 @@
+services:
+  - type: web
+    name: ukm-hub-api
+    runtime: docker
+    repo: https://github.com/TeguhBagasM/ukm-hub
+    dockerContext: .
+    dockerfilePath: ./Dockerfile
+    plan: free
+    healthCheckPath: /health
+    envVars:
+      - key: ENV
+        value: production
+      - key: DB_HOST
+        sync: false
+      - key: DB_PORT
+        value: "5432"
+      - key: DB_USER
+        sync: false
+      - key: DB_PASSWORD
+        sync: false
+      - key: DB_NAME
+        sync: false
+      - key: DB_SSLMODE
+        value: require
+      - key: DB_TIMEZONE
+        value: Asia/Jakarta
+      - key: JWT_SECRET
+        sync: false

@@ -2,7 +2,6 @@
 @baseUrl = http://localhost:8080/api/v1
 # Seed accounts (lihat internal/seed/seed.go): admin@ukmhub.app / admin123 (SUPER_ADMIN)
 #                                     dan admin@csa.app / admin123 (ORG_ADMIN)
-@authToken = PASTE_TOKEN_HERE
 @orgId = PASTE_ORG_ID_HERE
 @eventId = PASTE_EVENT_ID_HERE
 @eventSlug = open-recruitment-csa-2026
@@ -14,9 +13,13 @@
 
 ### ============================================================
 ### AUTH
+### Catatan: JALANKAN 2 LOGIN DI BAWAH DULU sekali.
+### Token otomatis diambil dari response ({{superLogin...}} / {{orgLogin...}}),
+### jadi TIDAK perlu copy-paste token manual (itu penyebab error "token is malformed").
 ### ============================================================
 
 ### 1. Login (SUPER_ADMIN)
+# @name superLogin
 POST {{baseUrl}}/auth/login
 Content-Type: application/json
 
@@ -26,6 +29,7 @@ Content-Type: application/json
 }
 
 ### 2. Login (ORG_ADMIN)
+# @name orgLogin
 POST {{baseUrl}}/auth/login
 Content-Type: application/json
 
@@ -34,28 +38,44 @@ Content-Type: application/json
   "password": "admin123"
 }
 
-### 3. Get Profile
-GET {{baseUrl}}/users/me
-Authorization: Bearer {{authToken}}
+# Token otomatis dari response login di atas (jangan diedit manual).
+@superToken = eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyX2lkIjoiMzRkODZiMWUtODM0Yy00MjE2LWIyNTEtZGE1MDAyMjdkY2JmIiwicm9sZSI6IlNVUEVSX0FETUlOIiwiZXhwIjoxNzg5NzEwNDYyLCJpYXQiOjE3ODk2MjQwNjIsImp0aSI6ImVkNGY1YTZiLWRkZWQtNDM1NS1hODdiLTNhYTA1Mjc2MDg3OCJ9.pImEcMNZo6KI04HlxFbwryZFBH-QIuGvDAvdtC_f1LY
+@orgToken = {{orgLogin.response.body.$.data.token}}
 
-### 4. Test Akses Tanpa Token (401)
+### 3. Get Profile (SUPER_ADMIN)
+GET {{baseUrl}}/users/me
+Authorization: Bearer {{superToken}}
+
+### 4. Get Profile (ORG_ADMIN) - bandingkan role-nya
+GET {{baseUrl}}/users/me
+Authorization: Bearer {{orgToken}}
+
+### 5. Test Akses Tanpa Token (401)
 GET {{baseUrl}}/users/me
 
-### 5. Logout
+### 6. Test Token Rusak (401 - "token is malformed")
+GET {{baseUrl}}/users/me
+Authorization: Bearer abc.def.ghi
+
+### 7. Logout
 POST {{baseUrl}}/auth/logout
-Authorization: Bearer {{authToken}}
+Authorization: Bearer {{superToken}}
 
 ### ============================================================
 ### ORGANIZATIONS (SUPER_ADMIN untuk write, ORG_ADMIN akses miliknya)
 ### ============================================================
 
-### 6. List Organisasi (hanya yang bisa diakses)
+### 8. List Organisasi (hanya yang bisa diakses)
 GET {{baseUrl}}/organizations
-Authorization: Bearer {{authToken}}
+Authorization: Bearer {{superToken}}
 
-### 7. Create Organisasi
+### 9. List Organisasi sebagai ORG_ADMIN (hanya miliknya)
+GET {{baseUrl}}/organizations
+Authorization: Bearer {{orgToken}}
+
+### 10. Create Organisasi
 POST {{baseUrl}}/organizations
-Authorization: Bearer {{authToken}}
+Authorization: Bearer {{superToken}}
 Content-Type: application/json
 
 {
@@ -64,13 +84,13 @@ Content-Type: application/json
   "description": "Organisasi mahasiswa informatika"
 }
 
-### 8. Detail Organisasi
+### 11. Detail Organisasi
 GET {{baseUrl}}/organizations/{{orgId}}
-Authorization: Bearer {{authToken}}
+Authorization: Bearer {{superToken}}
 
-### 9. Update Organisasi (slug/status hanya SUPER_ADMIN)
+### 12. Update Organisasi (slug/status hanya SUPER_ADMIN)
 PUT {{baseUrl}}/organizations/{{orgId}}
-Authorization: Bearer {{authToken}}
+Authorization: Bearer {{superToken}}
 Content-Type: application/json
 
 {
@@ -78,21 +98,21 @@ Content-Type: application/json
   "description": "Deskripsi baru"
 }
 
-### 10. Delete Organisasi (SUPER_ADMIN)
+### 13. Delete Organisasi (SUPER_ADMIN)
 DELETE {{baseUrl}}/organizations/{{orgId}}
-Authorization: Bearer {{authToken}}
+Authorization: Bearer {{superToken}}
 
 ### ============================================================
 ### DIVISIONS (scoped ke organisasi)
 ### ============================================================
 
-### 11. List Divisi
+### 14. List Divisi
 GET {{baseUrl}}/organizations/{{orgId}}/divisions
-Authorization: Bearer {{authToken}}
+Authorization: Bearer {{orgToken}}
 
-### 12. Create Divisi
+### 15. Create Divisi
 POST {{baseUrl}}/organizations/{{orgId}}/divisions
-Authorization: Bearer {{authToken}}
+Authorization: Bearer {{orgToken}}
 Content-Type: application/json
 
 {
@@ -100,9 +120,9 @@ Content-Type: application/json
   "description": "Divisi desain dan konten"
 }
 
-### 13. Update Divisi
+### 16. Update Divisi
 PUT {{baseUrl}}/divisions/{{divisionId}}
-Authorization: Bearer {{authToken}}
+Authorization: Bearer {{orgToken}}
 Content-Type: application/json
 
 {
@@ -110,21 +130,21 @@ Content-Type: application/json
   "status": "active"
 }
 
-### 14. Delete Divisi
+### 17. Delete Divisi
 DELETE {{baseUrl}}/divisions/{{divisionId}}
-Authorization: Bearer {{authToken}}
+Authorization: Bearer {{orgToken}}
 
 ### ============================================================
 ### EVENTS
 ### ============================================================
 
-### 15. List Event per Organisasi
+### 18. List Event per Organisasi
 GET {{baseUrl}}/organizations/{{orgId}}/events
-Authorization: Bearer {{authToken}}
+Authorization: Bearer {{orgToken}}
 
-### 16. Create Event
+### 19. Create Event
 POST {{baseUrl}}/organizations/{{orgId}}/events
-Authorization: Bearer {{authToken}}
+Authorization: Bearer {{orgToken}}
 Content-Type: application/json
 
 {
@@ -137,13 +157,13 @@ Content-Type: application/json
   "quota": 50
 }
 
-### 17. Detail Event
+### 20. Detail Event
 GET {{baseUrl}}/events/{{eventId}}
-Authorization: Bearer {{authToken}}
+Authorization: Bearer {{orgToken}}
 
-### 18. Update Event
+### 21. Update Event
 PUT {{baseUrl}}/events/{{eventId}}
-Authorization: Bearer {{authToken}}
+Authorization: Bearer {{orgToken}}
 Content-Type: application/json
 
 {
@@ -151,33 +171,33 @@ Content-Type: application/json
   "quota": 100
 }
 
-### 19. Publish Event
+### 22. Publish Event
 POST {{baseUrl}}/events/{{eventId}}/publish
-Authorization: Bearer {{authToken}}
+Authorization: Bearer {{orgToken}}
 
-### 20. Close Event
+### 23. Close Event
 POST {{baseUrl}}/events/{{eventId}}/close
-Authorization: Bearer {{authToken}}
+Authorization: Bearer {{orgToken}}
 
-### 21. Archive Event
+### 24. Archive Event
 POST {{baseUrl}}/events/{{eventId}}/archive
-Authorization: Bearer {{authToken}}
+Authorization: Bearer {{orgToken}}
 
-### 22. Delete Event
+### 25. Delete Event
 DELETE {{baseUrl}}/events/{{eventId}}
-Authorization: Bearer {{authToken}}
+Authorization: Bearer {{orgToken}}
 
 ### ============================================================
 ### FORM BUILDER
 ### ============================================================
 
-### 23. Get Form milik Event
+### 26. Get Form milik Event
 GET {{baseUrl}}/events/{{eventId}}/form
-Authorization: Bearer {{authToken}}
+Authorization: Bearer {{orgToken}}
 
-### 24. Create / Set Form untuk Event
+### 27. Create / Set Form untuk Event
 POST {{baseUrl}}/events/{{eventId}}/form
-Authorization: Bearer {{authToken}}
+Authorization: Bearer {{orgToken}}
 Content-Type: application/json
 
 {
@@ -186,9 +206,9 @@ Content-Type: application/json
   "submit_webhook_url": "https://script.google.com/macros/s/XXXX/exec"
 }
 
-### 25. Update Form
+### 28. Update Form
 PUT {{baseUrl}}/forms/{{formId}}
-Authorization: Bearer {{authToken}}
+Authorization: Bearer {{orgToken}}
 Content-Type: application/json
 
 {
@@ -196,25 +216,25 @@ Content-Type: application/json
   "submit_webhook_url": ""
 }
 
-### 26. Publish Form
+### 29. Publish Form
 POST {{baseUrl}}/forms/{{formId}}/publish
-Authorization: Bearer {{authToken}}
+Authorization: Bearer {{orgToken}}
 
-### 27. Unpublish Form
+### 30. Unpublish Form
 POST {{baseUrl}}/forms/{{formId}}/unpublish
-Authorization: Bearer {{authToken}}
+Authorization: Bearer {{orgToken}}
 
-### 28. Duplicate Form
+### 31. Duplicate Form
 POST {{baseUrl}}/forms/{{formId}}/duplicate
-Authorization: Bearer {{authToken}}
+Authorization: Bearer {{orgToken}}
 
-### 29. List Field Form
+### 32. List Field Form
 GET {{baseUrl}}/forms/{{formId}}/fields
-Authorization: Bearer {{authToken}}
+Authorization: Bearer {{orgToken}}
 
-### 30. Tambah Field
+### 33. Tambah Field
 POST {{baseUrl}}/forms/{{formId}}/fields
-Authorization: Bearer {{authToken}}
+Authorization: Bearer {{orgToken}}
 Content-Type: application/json
 
 {
@@ -226,9 +246,9 @@ Content-Type: application/json
   "sort_order": 5
 }
 
-### 31. Update Field
+### 34. Update Field
 PUT {{baseUrl}}/fields/{{fieldId}}
-Authorization: Bearer {{authToken}}
+Authorization: Bearer {{orgToken}}
 Content-Type: application/json
 
 {
@@ -236,38 +256,38 @@ Content-Type: application/json
   "required": true
 }
 
-### 32. Reorder Field
+### 35. Reorder Field
 POST {{baseUrl}}/forms/{{formId}}/fields/reorder
-Authorization: Bearer {{authToken}}
+Authorization: Bearer {{orgToken}}
 Content-Type: application/json
 
 {
   "field_ids": ["{{fieldId}}"]
 }
 
-### 33. Delete Field
+### 36. Delete Field
 DELETE {{baseUrl}}/fields/{{fieldId}}
-Authorization: Bearer {{authToken}}
+Authorization: Bearer {{orgToken}}
 
 ### ============================================================
 ### REGISTRATION MANAGEMENT (scoped ke organisasi)
 ### ============================================================
 
-### 34. List Registrations (filter status/search + pagination)
+### 37. List Registrations (filter status/search + pagination)
 GET {{baseUrl}}/events/{{eventId}}/registrations?page=1&per_page=10&status=PENDING&search=
-Authorization: Bearer {{authToken}}
+Authorization: Bearer {{orgToken}}
 
-### 35. Detail Registration (termasuk answers)
+### 38. Detail Registration (termasuk answers)
 GET {{baseUrl}}/registrations/{{registrationId}}
-Authorization: Bearer {{authToken}}
+Authorization: Bearer {{orgToken}}
 
-### 36. Accept Applicant
+### 39. Accept Applicant
 POST {{baseUrl}}/registrations/{{registrationId}}/accept
-Authorization: Bearer {{authToken}}
+Authorization: Bearer {{orgToken}}
 
-### 37. Reject Applicant
+### 40. Reject Applicant
 POST {{baseUrl}}/registrations/{{registrationId}}/reject
-Authorization: Bearer {{authToken}}
+Authorization: Bearer {{orgToken}}
 Content-Type: application/json
 
 {
@@ -278,13 +298,13 @@ Content-Type: application/json
 ### MEMBER MANAGEMENT (scoped ke organisasi)
 ### ============================================================
 
-### 38. List Members (filter division/search + pagination)
+### 41. List Members (filter division/search + pagination)
 GET {{baseUrl}}/organizations/{{orgId}}/members?page=1&per_page=10&division_id=&search=
-Authorization: Bearer {{authToken}}
+Authorization: Bearer {{orgToken}}
 
-### 39. Convert Applicant -> Member (auto-derive nama/email/phone/nim/divisi dari answers)
+### 42. Convert Applicant -> Member (auto-derive nama/email/phone/nim/divisi dari answers)
 POST {{baseUrl}}/registrations/{{registrationId}}/convert-member
-Authorization: Bearer {{authToken}}
+Authorization: Bearer {{orgToken}}
 Content-Type: application/json
 
 {
@@ -292,13 +312,13 @@ Content-Type: application/json
   "status": "active"
 }
 
-### 40. Detail Member
+### 43. Detail Member
 GET {{baseUrl}}/members/{{memberId}}
-Authorization: Bearer {{authToken}}
+Authorization: Bearer {{orgToken}}
 
-### 41. Update Member (pindah divisi / status)
+### 44. Update Member (pindah divisi / status)
 PUT {{baseUrl}}/members/{{memberId}}
-Authorization: Bearer {{authToken}}
+Authorization: Bearer {{orgToken}}
 Content-Type: application/json
 
 {
@@ -306,38 +326,38 @@ Content-Type: application/json
   "status": "inactive"
 }
 
-### 42. Delete Member
+### 45. Delete Member
 DELETE {{baseUrl}}/members/{{memberId}}
-Authorization: Bearer {{authToken}}
+Authorization: Bearer {{orgToken}}
 
 ### ============================================================
 ### DASHBOARD & CSV EXPORT (scoped ke organisasi)
 ### ============================================================
 
-### 43. Dashboard (data aktual)
+### 46. Dashboard (data aktual)
 GET {{baseUrl}}/organizations/{{orgId}}/dashboard
-Authorization: Bearer {{authToken}}
+Authorization: Bearer {{orgToken}}
 
-### 44. Export Registrations CSV (opsional filter ?event_id=)
+### 47. Export Registrations CSV (opsional filter ?event_id=)
 GET {{baseUrl}}/organizations/{{orgId}}/registrations/export?event_id={{eventId}}
-Authorization: Bearer {{authToken}}
+Authorization: Bearer {{orgToken}}
 
-### 45. Export Members CSV
+### 48. Export Members CSV
 GET {{baseUrl}}/organizations/{{orgId}}/members/export
-Authorization: Bearer {{authToken}}
+Authorization: Bearer {{orgToken}}
 
 ### ============================================================
 ### PUBLIC REGISTRATION (tanpa login)
 ### ============================================================
 
-### 46. Public Event Info
+### 49. Public Event Info
 GET {{baseUrl}}/public/events/{{eventSlug}}
 
-### 47. Public Form (field + tipe + required)
+### 50. Public Form (field + tipe + required)
 GET {{baseUrl}}/public/events/{{eventSlug}}/form
 
-### 48. Submit Public Registration
-# answers[].field_id diambil dari response #47
+### 51. Submit Public Registration
+# answers[].field_id diambil dari response #50
 POST {{baseUrl}}/public/events/{{eventSlug}}/registrations
 Content-Type: application/json
 
