@@ -3,8 +3,8 @@ package handler
 import (
 	"net/http"
 
-	"ukm-hub/internal/dto"
-	"ukm-hub/internal/service"
+	"handler/internal/dto"
+	"handler/internal/service"
 
 	"github.com/gin-gonic/gin"
 )

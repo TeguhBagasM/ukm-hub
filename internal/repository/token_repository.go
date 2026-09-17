@@ -3,7 +3,7 @@ package repository
 import (
 	"time"
 
-	"ukm-hub/internal/entity"
+	"handler/internal/entity"
 
 	"gorm.io/gorm"
 	"gorm.io/gorm/clause"

@@ -1,10 +1,10 @@
 package routes
 
 import (
-	"ukm-hub/internal/handler"
-	"ukm-hub/internal/middleware"
-	"ukm-hub/internal/repository"
-	"ukm-hub/internal/utils"
+	"handler/internal/handler"
+	"handler/internal/middleware"
+	"handler/internal/repository"
+	"handler/internal/utils"
 
 	"github.com/gin-gonic/gin"
 )

@@ -4,9 +4,9 @@ import (
 	"fmt"
 	"net/http"
 
-	"ukm-hub/internal/dto"
-	"ukm-hub/internal/service"
-	"ukm-hub/internal/utils"
+	"handler/internal/dto"
+	"handler/internal/service"
+	"handler/internal/utils"
 
 	"github.com/gin-gonic/gin"
 )

@@ -6,8 +6,8 @@ import (
 	"testing"
 	"time"
 
-	"ukm-hub/internal/entity"
-	"ukm-hub/internal/utils"
+	"handler/internal/entity"
+	"handler/internal/utils"
 )
 
 func appErrorStatus(t *testing.T, err error) int {

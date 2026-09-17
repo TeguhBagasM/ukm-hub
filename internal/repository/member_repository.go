@@ -1,7 +1,7 @@
 package repository
 
 import (
-	"ukm-hub/internal/entity"
+	"handler/internal/entity"
 
 	"github.com/google/uuid"
 	"gorm.io/gorm"

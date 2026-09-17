@@ -11,11 +11,11 @@ import (
 	"strings"
 	"time"
 
-	"ukm-hub/internal/dto"
-	"ukm-hub/internal/entity"
-	"ukm-hub/internal/integration"
-	"ukm-hub/internal/repository"
-	"ukm-hub/internal/utils"
+	"handler/internal/dto"
+	"handler/internal/entity"
+	"handler/internal/integration"
+	"handler/internal/repository"
+	"handler/internal/utils"
 )
 
 type PublicService interface {

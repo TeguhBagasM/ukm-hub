@@ -5,8 +5,8 @@ import (
 	"log"
 	"time"
 
-	"ukm-hub/internal/entity"
-	"ukm-hub/internal/utils"
+	"handler/internal/entity"
+	"handler/internal/utils"
 
 	"gorm.io/gorm"
 )

@@ -4,8 +4,8 @@ import (
 	"net/http"
 	"strings"
 
-	"ukm-hub/internal/repository"
-	"ukm-hub/internal/utils"
+	"handler/internal/repository"
+	"handler/internal/utils"
 
 	"github.com/gin-gonic/gin"
 )

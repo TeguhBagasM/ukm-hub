@@ -1,23 +1,27 @@
 package handler
 
 import (
+	"log"
 	"net/http"
 
-	"ukm-hub/internal/config"
-	"ukm-hub/internal/handler"
-	"ukm-hub/internal/repository"
-	"ukm-hub/internal/routes"
-	"ukm-hub/internal/service"
+	"handler/internal/config"
+	"handler/internal/handler"
+	"handler/internal/repository"
+	"handler/internal/routes"
+	"handler/internal/service"
 
 	"github.com/gin-gonic/gin"
 )
 
 var app *gin.Engine
+var initErr error
 
 func init() {
 	db, err := config.InitDB()
 	if err != nil {
-		panic("Failed to connect DB: " + err.Error())
+		initErr = err
+		log.Printf("[startup] database initialization failed: %v", err)
+		return
 	}
 
 	// 1. Repositories
@@ -76,5 +80,9 @@ func init() {
 }
 
 func Handler(w http.ResponseWriter, r *http.Request) {
+	if initErr != nil {
+		http.Error(w, "database is not configured or unavailable", http.StatusServiceUnavailable)
+		return
+	}
 	app.ServeHTTP(w, r)
 }

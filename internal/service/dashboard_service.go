@@ -6,10 +6,10 @@ import (
 	"net/http"
 	"time"
 
-	"ukm-hub/internal/dto"
-	"ukm-hub/internal/entity"
-	"ukm-hub/internal/repository"
-	"ukm-hub/internal/utils"
+	"handler/internal/dto"
+	"handler/internal/entity"
+	"handler/internal/repository"
+	"handler/internal/utils"
 
 	"github.com/google/uuid"
 )

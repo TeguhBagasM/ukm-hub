@@ -3,7 +3,7 @@ package middleware
 import (
 	"net/http"
 
-	"ukm-hub/internal/utils"
+	"handler/internal/utils"
 
 	"github.com/gin-gonic/gin"
 )
