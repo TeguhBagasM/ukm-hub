@@ -10,6 +10,7 @@ import (
 	"ukm-hub/internal/handler"
 	"ukm-hub/internal/repository"
 	"ukm-hub/internal/routes"
+	"ukm-hub/internal/seed"
 	"ukm-hub/internal/service"
 
 	"github.com/gin-gonic/gin"
@@ -26,7 +27,26 @@ func main() {
 	}
 
 	// Auto Migrate Models
-	db.AutoMigrate(&entity.User{}, &entity.RevokedToken{})
+	if err := db.AutoMigrate(
+		&entity.User{},
+		&entity.RevokedToken{},
+		&entity.Organization{},
+		&entity.OrganizationAdmin{},
+		&entity.Division{},
+		&entity.Event{},
+		&entity.Form{},
+		&entity.FormField{},
+		&entity.Registration{},
+		&entity.RegistrationAnswer{},
+		&entity.Member{},
+	); err != nil {
+		log.Fatalf("Failed to migrate DB: %v", err)
+	}
+
+	// Seed Demo Data (Idempotent)
+	if err := seed.Run(db); err != nil {
+		log.Fatalf("Failed to seed DB: %v", err)
+	}
 
 	// Dependency Injection Wiring
 	userRepo := repository.NewUserRepository(db)
@@ -36,6 +56,39 @@ func main() {
 	userService := service.NewUserService(userRepo, tokenRepo)
 	userHandler := handler.NewUserHandler(userService)
 
+	orgRepo := repository.NewOrganizationRepository(db)
+	accessService := service.NewAccessService(orgRepo)
+	orgService := service.NewOrganizationService(orgRepo, accessService)
+	orgHandler := handler.NewOrganizationHandler(orgService)
+
+	divRepo := repository.NewDivisionRepository(db)
+	divService := service.NewDivisionService(divRepo, accessService)
+	divHandler := handler.NewDivisionHandler(divService)
+
+	eventRepo := repository.NewEventRepository(db)
+	regRepo := repository.NewRegistrationRepository(db)
+	eventService := service.NewEventService(eventRepo, regRepo, accessService)
+	eventHandler := handler.NewEventHandler(eventService)
+
+	formRepo := repository.NewFormRepository(db)
+	fieldRepo := repository.NewFormFieldRepository(db)
+	formService := service.NewFormService(formRepo, fieldRepo, eventRepo, accessService)
+	formHandler := handler.NewFormHandler(formService)
+
+	publicService := service.NewPublicService(eventRepo, formRepo, fieldRepo, orgRepo, regRepo)
+	publicHandler := handler.NewPublicHandler(publicService)
+
+	regService := service.NewRegistrationService(regRepo, eventRepo, formRepo, fieldRepo, accessService)
+	regHandler := handler.NewRegistrationHandler(regService)
+
+	memberRepo := repository.NewMemberRepository(db)
+	memberService := service.NewMemberService(memberRepo, regRepo, eventRepo, formRepo, fieldRepo, divRepo, orgRepo, accessService)
+	memberHandler := handler.NewMemberHandler(memberService)
+
+	dashboardRepo := repository.NewDashboardRepository(db)
+	dashboardService := service.NewDashboardService(dashboardRepo, memberRepo, regRepo, formRepo, fieldRepo, divRepo, eventRepo, accessService)
+	dashboardHandler := handler.NewDashboardHandler(dashboardService)
+
 	if config.Get("ENV", "development") == "production" {
 		gin.SetMode(gin.ReleaseMode)
 	}
@@ -43,7 +96,7 @@ func main() {
 	r := gin.Default()
 
 	// Setup Routes
-	routes.SetupRouter(r, userHandler, tokenRepo)
+	routes.SetupRouter(r, userHandler, orgHandler, divHandler, eventHandler, formHandler, regHandler, memberHandler, dashboardHandler, publicHandler, tokenRepo)
 
 	r.Run(":" + config.Get("PORT", "8080"))
 }

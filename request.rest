@@ -1,54 +1,348 @@
 ### Variables
 @baseUrl = http://localhost:8080/api/v1
-@authToken = eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyX2lkIjoiNmU4YmQ1YmItMjg2Yi00MTM2LWE4ZTAtYzg4YzBiNjJiZGU0Iiwicm9sZSI6InVzZXIiLCJleHAiOjE3ODk2NzU2NzcsImlhdCI6MTc4OTU4OTI3N30.UWFCS8vw2VhL4TesYM1eWN-DDUP_GT2e5UjdNn3cQ60
+# Seed accounts (lihat internal/seed/seed.go): admin@ukmhub.app / admin123 (SUPER_ADMIN)
+#                                     dan admin@csa.app / admin123 (ORG_ADMIN)
+@authToken = PASTE_TOKEN_HERE
+@orgId = PASTE_ORG_ID_HERE
+@eventId = PASTE_EVENT_ID_HERE
+@eventSlug = open-recruitment-csa-2026
+@formId = PASTE_FORM_ID_HERE
+@fieldId = PASTE_FIELD_ID_HERE
+@divisionId = PASTE_DIVISION_ID_HERE
+@registrationId = PASTE_REGISTRATION_ID_HERE
+@memberId = PASTE_MEMBER_ID_HERE
 
-### 1. Register User Baru
-POST {{baseUrl}}/auth/register
-Content-Type: application/json
+### ============================================================
+### AUTH
+### ============================================================
 
-{
-  "name": "teguh bagas",
-  "email": "teguh@gmail.com",
-  "password": "121212"
-}
-
-### 2. Login User (Token Otomatis Disimpan ke Variable)
-# @name login
+### 1. Login (SUPER_ADMIN)
 POST {{baseUrl}}/auth/login
 Content-Type: application/json
 
 {
-  "email": "teguh@gmail.com",
-  "password": "121212"
+  "email": "admin@ukmhub.app",
+  "password": "admin123"
 }
 
-### 3. Get Profile User (Protected - Wajib Login)
-GET {{baseUrl}}/users/me
-Authorization: Bearer {{authToken}}
-
-### 4. Update Profile User (Protected - Wajib Login)
-PUT {{baseUrl}}/users/me
-Authorization: Bearer {{authToken}}
+### 2. Login (ORG_ADMIN)
+POST {{baseUrl}}/auth/login
 Content-Type: application/json
 
 {
-  "name": "teguh bagas Updated",
-  "email": "teguh@gmail.com"
+  "email": "admin@csa.app",
+  "password": "admin123"
 }
 
-### 5. Test Uji Validasi Register (Error 400 - Email & Password Salah)
-POST {{baseUrl}}/auth/register
-Content-Type: application/json
+### 3. Get Profile
+GET {{baseUrl}}/users/me
+Authorization: Bearer {{authToken}}
 
-{
-  "name": "A",
-  "email": "email-salah",
-  "password": "123"
-}
-
-### 6. Test Uji Akses Tanpa Token (Error 401 Unauthorized)
+### 4. Test Akses Tanpa Token (401)
 GET {{baseUrl}}/users/me
 
-### 7. Logout User (Protected - Wajib Login)
+### 5. Logout
 POST {{baseUrl}}/auth/logout
 Authorization: Bearer {{authToken}}
+
+### ============================================================
+### ORGANIZATIONS (SUPER_ADMIN untuk write, ORG_ADMIN akses miliknya)
+### ============================================================
+
+### 6. List Organisasi (hanya yang bisa diakses)
+GET {{baseUrl}}/organizations
+Authorization: Bearer {{authToken}}
+
+### 7. Create Organisasi
+POST {{baseUrl}}/organizations
+Authorization: Bearer {{authToken}}
+Content-Type: application/json
+
+{
+  "name": "Himpunan Mahasiswa Informatika",
+  "slug": "hmi-informatika",
+  "description": "Organisasi mahasiswa informatika"
+}
+
+### 8. Detail Organisasi
+GET {{baseUrl}}/organizations/{{orgId}}
+Authorization: Bearer {{authToken}}
+
+### 9. Update Organisasi (slug/status hanya SUPER_ADMIN)
+PUT {{baseUrl}}/organizations/{{orgId}}
+Authorization: Bearer {{authToken}}
+Content-Type: application/json
+
+{
+  "name": "Himpunan Mahasiswa Informatika",
+  "description": "Deskripsi baru"
+}
+
+### 10. Delete Organisasi (SUPER_ADMIN)
+DELETE {{baseUrl}}/organizations/{{orgId}}
+Authorization: Bearer {{authToken}}
+
+### ============================================================
+### DIVISIONS (scoped ke organisasi)
+### ============================================================
+
+### 11. List Divisi
+GET {{baseUrl}}/organizations/{{orgId}}/divisions
+Authorization: Bearer {{authToken}}
+
+### 12. Create Divisi
+POST {{baseUrl}}/organizations/{{orgId}}/divisions
+Authorization: Bearer {{authToken}}
+Content-Type: application/json
+
+{
+  "name": "Multimedia",
+  "description": "Divisi desain dan konten"
+}
+
+### 13. Update Divisi
+PUT {{baseUrl}}/divisions/{{divisionId}}
+Authorization: Bearer {{authToken}}
+Content-Type: application/json
+
+{
+  "name": "Multimedia & Design",
+  "status": "active"
+}
+
+### 14. Delete Divisi
+DELETE {{baseUrl}}/divisions/{{divisionId}}
+Authorization: Bearer {{authToken}}
+
+### ============================================================
+### EVENTS
+### ============================================================
+
+### 15. List Event per Organisasi
+GET {{baseUrl}}/organizations/{{orgId}}/events
+Authorization: Bearer {{authToken}}
+
+### 16. Create Event
+POST {{baseUrl}}/organizations/{{orgId}}/events
+Authorization: Bearer {{authToken}}
+Content-Type: application/json
+
+{
+  "name": "Open Recruitment 2026",
+  "slug": "open-recruitment-2026",
+  "description": "Pendaftaran anggota baru",
+  "location": "Gedung A",
+  "registration_start": "2026-09-01T00:00:00Z",
+  "registration_end": "2026-10-01T00:00:00Z",
+  "quota": 50
+}
+
+### 17. Detail Event
+GET {{baseUrl}}/events/{{eventId}}
+Authorization: Bearer {{authToken}}
+
+### 18. Update Event
+PUT {{baseUrl}}/events/{{eventId}}
+Authorization: Bearer {{authToken}}
+Content-Type: application/json
+
+{
+  "name": "Open Recruitment CSA 2026",
+  "quota": 100
+}
+
+### 19. Publish Event
+POST {{baseUrl}}/events/{{eventId}}/publish
+Authorization: Bearer {{authToken}}
+
+### 20. Close Event
+POST {{baseUrl}}/events/{{eventId}}/close
+Authorization: Bearer {{authToken}}
+
+### 21. Archive Event
+POST {{baseUrl}}/events/{{eventId}}/archive
+Authorization: Bearer {{authToken}}
+
+### 22. Delete Event
+DELETE {{baseUrl}}/events/{{eventId}}
+Authorization: Bearer {{authToken}}
+
+### ============================================================
+### FORM BUILDER
+### ============================================================
+
+### 23. Get Form milik Event
+GET {{baseUrl}}/events/{{eventId}}/form
+Authorization: Bearer {{authToken}}
+
+### 24. Create / Set Form untuk Event
+POST {{baseUrl}}/events/{{eventId}}/form
+Authorization: Bearer {{authToken}}
+Content-Type: application/json
+
+{
+  "title": "Form Pendaftaran Anggota",
+  "description": "Isi data dengan benar",
+  "submit_webhook_url": "https://script.google.com/macros/s/XXXX/exec"
+}
+
+### 25. Update Form
+PUT {{baseUrl}}/forms/{{formId}}
+Authorization: Bearer {{authToken}}
+Content-Type: application/json
+
+{
+  "title": "Form Pendaftaran Anggota Baru",
+  "submit_webhook_url": ""
+}
+
+### 26. Publish Form
+POST {{baseUrl}}/forms/{{formId}}/publish
+Authorization: Bearer {{authToken}}
+
+### 27. Unpublish Form
+POST {{baseUrl}}/forms/{{formId}}/unpublish
+Authorization: Bearer {{authToken}}
+
+### 28. Duplicate Form
+POST {{baseUrl}}/forms/{{formId}}/duplicate
+Authorization: Bearer {{authToken}}
+
+### 29. List Field Form
+GET {{baseUrl}}/forms/{{formId}}/fields
+Authorization: Bearer {{authToken}}
+
+### 30. Tambah Field
+POST {{baseUrl}}/forms/{{formId}}/fields
+Authorization: Bearer {{authToken}}
+Content-Type: application/json
+
+{
+  "label": "Divisi Pilihan",
+  "name": "divisi_pilihan",
+  "type": "SELECT",
+  "required": true,
+  "options": ["Programming", "Multimedia", "Research"],
+  "sort_order": 5
+}
+
+### 31. Update Field
+PUT {{baseUrl}}/fields/{{fieldId}}
+Authorization: Bearer {{authToken}}
+Content-Type: application/json
+
+{
+  "label": "Nama Lengkap",
+  "required": true
+}
+
+### 32. Reorder Field
+POST {{baseUrl}}/forms/{{formId}}/fields/reorder
+Authorization: Bearer {{authToken}}
+Content-Type: application/json
+
+{
+  "field_ids": ["{{fieldId}}"]
+}
+
+### 33. Delete Field
+DELETE {{baseUrl}}/fields/{{fieldId}}
+Authorization: Bearer {{authToken}}
+
+### ============================================================
+### REGISTRATION MANAGEMENT (scoped ke organisasi)
+### ============================================================
+
+### 34. List Registrations (filter status/search + pagination)
+GET {{baseUrl}}/events/{{eventId}}/registrations?page=1&per_page=10&status=PENDING&search=
+Authorization: Bearer {{authToken}}
+
+### 35. Detail Registration (termasuk answers)
+GET {{baseUrl}}/registrations/{{registrationId}}
+Authorization: Bearer {{authToken}}
+
+### 36. Accept Applicant
+POST {{baseUrl}}/registrations/{{registrationId}}/accept
+Authorization: Bearer {{authToken}}
+
+### 37. Reject Applicant
+POST {{baseUrl}}/registrations/{{registrationId}}/reject
+Authorization: Bearer {{authToken}}
+Content-Type: application/json
+
+{
+  "reason": "Portfolio tidak sesuai kriteria"
+}
+
+### ============================================================
+### MEMBER MANAGEMENT (scoped ke organisasi)
+### ============================================================
+
+### 38. List Members (filter division/search + pagination)
+GET {{baseUrl}}/organizations/{{orgId}}/members?page=1&per_page=10&division_id=&search=
+Authorization: Bearer {{authToken}}
+
+### 39. Convert Applicant -> Member (auto-derive nama/email/phone/nim/divisi dari answers)
+POST {{baseUrl}}/registrations/{{registrationId}}/convert-member
+Authorization: Bearer {{authToken}}
+Content-Type: application/json
+
+{
+  "division_id": "{{divisionId}}",
+  "status": "active"
+}
+
+### 40. Detail Member
+GET {{baseUrl}}/members/{{memberId}}
+Authorization: Bearer {{authToken}}
+
+### 41. Update Member (pindah divisi / status)
+PUT {{baseUrl}}/members/{{memberId}}
+Authorization: Bearer {{authToken}}
+Content-Type: application/json
+
+{
+  "division_id": "{{divisionId}}",
+  "status": "inactive"
+}
+
+### 42. Delete Member
+DELETE {{baseUrl}}/members/{{memberId}}
+Authorization: Bearer {{authToken}}
+
+### ============================================================
+### DASHBOARD & CSV EXPORT (scoped ke organisasi)
+### ============================================================
+
+### 43. Dashboard (data aktual)
+GET {{baseUrl}}/organizations/{{orgId}}/dashboard
+Authorization: Bearer {{authToken}}
+
+### 44. Export Registrations CSV (opsional filter ?event_id=)
+GET {{baseUrl}}/organizations/{{orgId}}/registrations/export?event_id={{eventId}}
+Authorization: Bearer {{authToken}}
+
+### 45. Export Members CSV
+GET {{baseUrl}}/organizations/{{orgId}}/members/export
+Authorization: Bearer {{authToken}}
+
+### ============================================================
+### PUBLIC REGISTRATION (tanpa login)
+### ============================================================
+
+### 46. Public Event Info
+GET {{baseUrl}}/public/events/{{eventSlug}}
+
+### 47. Public Form (field + tipe + required)
+GET {{baseUrl}}/public/events/{{eventSlug}}/form
+
+### 48. Submit Public Registration
+# answers[].field_id diambil dari response #47
+POST {{baseUrl}}/public/events/{{eventSlug}}/registrations
+Content-Type: application/json
+
+{
+  "answers": [
+    { "field_id": "{{fieldId}}", "value": "Ani Lestari" }
+  ]
+}
